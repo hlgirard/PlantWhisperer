@@ -1,13 +1,19 @@
 package com.hlgirard.android.plantwhisperer;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -23,6 +29,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import data.Plant;
+import data.PlantViewModel;
 import helpers.MqttHelper;
 
 public class MainActivity extends AppCompatActivity {
@@ -31,9 +39,10 @@ public class MainActivity extends AppCompatActivity {
     private static int PLANT_LOADER_ID = 1;
     private ProgressBar loading_spinner;
     private TextView empty_tv;
-    private PlantAdapter mAdapter;
+    private PlantListAdapter mAdapter;
     private MqttHelper mqttHelper;
     private List<Plant> fakePlantList = new ArrayList<Plant>();;
+    private PlantViewModel mPlantViewModel;
 
     Date fakeDate;
 
@@ -51,27 +60,48 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Find the plant list view
-        ListView plantListView = (ListView) findViewById(R.id.plant_list);
+        RecyclerView plantRecyclerView = findViewById(R.id.plant_list);
+
+        // TODO: Set empty view to the list view
+        //empty_tv = (TextView) findViewById(R.id.empty_list_view);
 
 
-        // Set empty view to the list view
-        empty_tv = (TextView) findViewById(R.id.empty_list_view);
-        plantListView.setEmptyView(empty_tv);
 
         // Obtain the loading spinner object
         loading_spinner = (ProgressBar) findViewById(R.id.loading_spinner);
 
         // Create an instance of the list adapter PlantAdapter
-        mAdapter = new PlantAdapter(MainActivity.this, fakePlantList);
+        mAdapter = new PlantListAdapter(MainActivity.this);
         // Set it to the listView
-        plantListView.setAdapter(mAdapter);
+        plantRecyclerView.setAdapter(mAdapter);
+        plantRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        fakePlantList.add(new Plant("Yucca", 25,fakeDate));
-        fakePlantList.add(new Plant("Banana tree", 90,fakeDate));
+        //fakePlantList.add(new Plant("Yucca", 25,fakeDate));
+        //fakePlantList.add(new Plant("Banana tree", 90,fakeDate));
 
         mAdapter.notifyDataSetChanged();
 
+        // Setup FAB to open EditorActivity
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, PlantEditorActivity.class);
+                startActivity(intent);
+            }
+        });
 
+        // Get a viewModel
+        mPlantViewModel = ViewModelProviders.of(this).get(PlantViewModel.class);
+
+        // Set an observer for the allPlants date
+        mPlantViewModel.getAllPlants().observe(this, new Observer<List<Plant>>() {
+            @Override
+            public void onChanged(@Nullable final List<Plant> plants) {
+                // Update the cached copy of the words in the adapter.
+                mAdapter.setPlants(plants);
+            }
+        });
 
         //Check connectivity
         ConnectivityManager cm =
@@ -144,8 +174,8 @@ public class MainActivity extends AppCompatActivity {
             Plant currentPlant = fakePlantList.get(plantPosition);
 
             // Update the Soil Moisture level and the Last update value
-            currentPlant.setSoilMoisture(mqttMessage_int);
-            currentPlant.setLastUpdate(Calendar.getInstance().getTime());
+            currentPlant.setHumidityLevel(mqttMessage_int);
+            currentPlant.setDateUpdated(Calendar.getInstance().getTime().getTime());
 
             mAdapter.notifyDataSetChanged();
         }

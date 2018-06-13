@@ -13,10 +13,16 @@ import java.util.List;
 @Dao
 public interface PlantDao {
     @Query("SELECT * FROM plant_table ORDER BY id ASC")
-    List<Plant> getAllPlants();
+    LiveData<List<Plant>> getAllPlants();
+
+    @Query("SELECT * FROM plant_table ORDER BY id ASC")
+    List<Plant> getPlantList();
 
     @Query("SELECT * FROM plant_table WHERE id IN (:plantIds)")
     List<Plant> loadAllByIds(int[] plantIds);
+
+    @Query("SELECT * FROM plant_table WHERE id IN (:plantId)")
+    Plant loadPlantById(int plantId);
 
     @Query("DELETE FROM plant_table")
     void deleteAll();

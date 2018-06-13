@@ -1,8 +1,11 @@
 package com.hlgirard.android.plantwhisperer;
 
 import android.app.AlertDialog;
+import android.app.LoaderManager;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.Loader;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,7 +14,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+
+import java.util.List;
 
 import data.Plant;
 import data.PlantViewModel;
@@ -30,7 +36,13 @@ public class PlantEditorActivity extends AppCompatActivity {
     private EditText mNameEditText;
     private EditText mMqttEditText;
     private EditText mLocationEditText;
+
+    private Button mRemoveButton;
+
     private PlantViewModel mPlantViewModel;
+
+    Bundle extras;
+    private int plantId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,12 +54,38 @@ public class PlantEditorActivity extends AppCompatActivity {
         mMqttEditText = (EditText) findViewById(R.id.edit_mqtt_topic);
         mLocationEditText = (EditText) findViewById(R.id.edit_location);
 
+        mRemoveButton = (Button) findViewById(R.id.remove_button);
+
         // Set onTouchListener to know whether the user has interacted with the views
         mNameEditText.setOnTouchListener(mTouchListener);
         mMqttEditText.setOnTouchListener(mTouchListener);
 
         // Get the view model
         mPlantViewModel = ViewModelProviders.of(this).get(PlantViewModel.class);
+
+        //Get the intent
+        Intent intent = getIntent();
+        extras = intent.getExtras();
+
+        if (extras == null) {
+            setTitle("Add a Plant");
+            mRemoveButton.setVisibility(View.GONE);
+        } else {
+            setTitle("Edit Plant");
+            plantId = extras.getInt("id");
+            displayInfo(plantId);
+
+            // Set the Delete button OnClickListener
+            mRemoveButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showDeleteConfirmationDialog(plantId);
+                }
+            });
+
+        }
+
+
     }
 
     @Override
@@ -62,13 +100,36 @@ public class PlantEditorActivity extends AppCompatActivity {
         String name = mNameEditText.getText().toString().trim();
         String mqttTopic = mMqttEditText.getText().toString().trim();
         String location = mLocationEditText.getText().toString().trim();
-        Plant newPlant = new Plant(name,00000000, 0, mqttTopic, location, 0);
-        Log.v("PlantEditorActivity", "Inserting a new plant" + newPlant.toString());
-        mPlantViewModel.insert(newPlant);
+
+        if (extras == null) {
+            Plant newPlant = new Plant(name, 00000000, 0, mqttTopic, location, 0);
+            Log.v("PlantEditorActivity", "Inserting a new plant" + newPlant.toString());
+            mPlantViewModel.insert(newPlant);
+        } else {
+            Log.v("savePlant","Attempting to update plant with id " + plantId);
+            Plant currentPlant = mPlantViewModel.getPlantById(plantId);
+            currentPlant.setName(name);
+            currentPlant.setLocation(location);
+            currentPlant.setTopic(mqttTopic);
+            mPlantViewModel.update(currentPlant);
+        }
     }
 
-    private void deletePlant() {
-        // TODO: Implement a way to delete a plant
+    private void deletePlant(int id) {
+        Log.v("deletePlant", "Attempting to delete plant with id " + id);
+        Plant toDelete = mPlantViewModel.getPlantById(id);
+        Log.v("deletePlant", "Preparing to delete plant #" + toDelete.getId());
+        mPlantViewModel.delete(toDelete);
+        finish();
+    }
+
+    private void displayInfo(int id) {
+        Log.v("displayInfo","Displaying info of plant with id " + id);
+        Plant currentPlant = mPlantViewModel.getPlantById(id);
+
+        mNameEditText.setText(currentPlant.getName());
+        mLocationEditText.setText(currentPlant.getLocation());
+        mMqttEditText.setText(currentPlant.getTopic());
     }
 
     @Override
@@ -81,13 +142,6 @@ public class PlantEditorActivity extends AppCompatActivity {
                 savePlant();
                 // Exit the editor activity and return to main screen
                 finish();
-                return true;
-            // Respond to a click on the "Delete" menu option
-            case R.id.action_delete:
-                // Show the delete pet dialog
-                showDeleteConfirmationDialog();
-                // Exit the activity and return to the main screen
-                //finish();
                 return true;
             // Respond to a click on the "Up" arrow button in the app bar
             case android.R.id.home:
@@ -118,15 +172,15 @@ public class PlantEditorActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void showDeleteConfirmationDialog() {
+    private void showDeleteConfirmationDialog(final int plantId) {
         // Create an AlertDialog.Builder and set the message, and click listeners
         // for the postivie and negative buttons on the dialog.
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Are you sure?");
-        builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton("Remove", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                // User clicked the "Delete" button, so delete the pet.
-                deletePlant();
+                // User clicked the "Delete" button, so delete the plant.
+                deletePlant(plantId);
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

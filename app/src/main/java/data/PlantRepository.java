@@ -10,18 +10,26 @@ import java.util.List;
 public class PlantRepository {
 
     private PlantDao mPlantDao;
-    private List<Plant> mAllPlants;
+    private LiveData<List<Plant>> mAllPlants;
+    private List<Plant> mPlantList;
 
     // Constructor for the repository
-    // Gets a handle to the database and initializes the membre variables
+    // Gets a handle to the database and initializes the member variables
     PlantRepository(Application application) {
         PlantRoomDatabase db = PlantRoomDatabase.getDatabase(application);
         mPlantDao = db.plantDao();
         mAllPlants = mPlantDao.getAllPlants();
+        mPlantList = mPlantDao.getPlantList();
     }
 
-    List<Plant> getAllPlants() {
+    List<Plant> getPlantList() { return mPlantList; }
+
+    LiveData<List<Plant>> getAllPlants() {
         return mAllPlants;
+    }
+
+    public Plant getPlantById(int id) {
+        return mPlantDao.loadPlantById(id);
     }
 
     public void insert (Plant plant) {
@@ -54,6 +62,21 @@ public class PlantRepository {
         @Override
         protected Void doInBackground(final Plant... params) {
             mAsyncTaskDao.update(params[0]);
+            return null;
+        }
+    }
+
+    public void delete (Plant plant) { new deleteAsyncTask(mPlantDao).execute(plant); }
+
+    private static class deleteAsyncTask extends AsyncTask<Plant, Void, Void> {
+
+        private PlantDao mAsyncTaskDao;
+
+        deleteAsyncTask(PlantDao dao) { mAsyncTaskDao = dao; }
+
+        @Override
+        protected Void doInBackground(final Plant... params) {
+            mAsyncTaskDao.delete(params[0]);
             return null;
         }
     }

@@ -1,5 +1,6 @@
 package com.hlgirard.android.plantwhisperer;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
@@ -8,6 +9,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,6 +18,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
@@ -54,8 +57,6 @@ public class MainActivity extends AppCompatActivity {
         // TODO: Set empty view to the list view
         //empty_tv = (TextView) findViewById(R.id.empty_list_view);
 
-
-
         // Obtain the loading spinner object
         loading_spinner = (ProgressBar) findViewById(R.id.loading_spinner);
 
@@ -76,12 +77,16 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Get a viewModel
-        // TODO: Move database access to background tasks (cannot access db on main thread)
         mPlantViewModel = ViewModelProviders.of(this).get(PlantViewModel.class);
-        List<Plant> plantList = mPlantViewModel.getAllPlants();
-        mAdapter.setPlants(plantList);
-        mAdapter.notifyDataSetChanged();
 
+        // Bind an observer to the viewModel and update adapter on change
+        mPlantViewModel.getAllPlants().observe(this, new Observer<List<Plant>>() {
+            @Override
+            public void onChanged(@Nullable List<Plant> plants) {
+                // Update the cached copy of the words in the adapter.
+                mAdapter.setPlants(plants);
+            }
+        });
 
         //Check connectivity
         ConnectivityManager cm =
@@ -93,10 +98,12 @@ public class MainActivity extends AppCompatActivity {
 
         if (isConnected) {
             // Update the plant data
+            Log.v("Main Activity", "Triggering the data update");
             updateAllPlants();
         } else {
             loading_spinner.setVisibility(View.GONE);
-            empty_tv.setText("No internet connection");
+            Snackbar mySnackbar = Snackbar.make(findViewById(R.id.parent_view), "No internet connection", Snackbar.LENGTH_LONG);
+            mySnackbar.show();;
         }
 
 
@@ -109,19 +116,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateAllPlants() {
-        plantList = mPlantViewModel.getAllPlants();
+        plantList = mPlantViewModel.getPlantList();
 
         String mqttTopic;
+        Plant currentPlant;
 
         for (int i = 0; i < plantList.size(); i++) {
-            Plant currentPlant = plantList.get(i);
+            currentPlant = plantList.get(i);
             mqttTopic = currentPlant.getTopic();
-            startMqtt(mqttTopic, i);
+            Log.v("updateAllPlants", "Starting the MQTT activity for plant #" + currentPlant.getId() + " with topic " + mqttTopic);
+            startMqtt(mqttTopic, currentPlant.getId());
         }
     }
 
     private void updatePlantData(String mqttMessage, int plantIndex) {
+
+        Log.v("updatePlantData", "Got MQTT data, starting database update with plantIndex " + plantIndex);
+
         Plant currentPlant = plantList.get(plantIndex);
+
+        Log.v("updatePlantData", ", updating the database for plant #" + currentPlant.getId());
 
         if (mqttMessage != null && !mqttMessage.isEmpty()) {
 
@@ -141,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
 
             mPlantViewModel.update(currentPlant);
 
-            Log.v("updatePlantData", "Updated the data for " + currentPlant.getName());
+            Log.v("updatePlantData", "Updated the data for plant #" + currentPlant.getId());
 
             mAdapter.notifyDataSetChanged();
         }
@@ -157,7 +171,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void connectionLost(Throwable throwable) {
-
+                loading_spinner.setVisibility(View.GONE);
+                Snackbar mySnackbar = Snackbar.make(findViewById(R.id.parent_view), "Could not connect to MQTT server", Snackbar.LENGTH_SHORT);
+                mySnackbar.show();
             }
 
             @Override

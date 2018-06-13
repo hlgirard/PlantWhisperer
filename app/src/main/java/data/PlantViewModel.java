@@ -11,19 +11,27 @@ import java.util.List;
 public class PlantViewModel extends AndroidViewModel {
 
     private PlantRepository mRepository;
-    private List<Plant> mAllPlants;
+    private LiveData<List<Plant>> mAllPlants;
+    private List<Plant> mPlantList;
 
     public PlantViewModel(@NonNull Application application) {
         super(application);
         mRepository = new PlantRepository(application);
         mAllPlants = mRepository.getAllPlants();
+        mPlantList = mRepository.getPlantList();
     }
 
-    // Wrapper for the get method
-    public List<Plant> getAllPlants() { return mAllPlants; }
+    // Wrapper for the get methods
+    public LiveData<List<Plant>> getAllPlants() { return mAllPlants; }
 
-    // Wrapper for the insert method
+    public List<Plant> getPlantList() { return mPlantList; }
+
+    public Plant getPlantById(int id) { return mRepository.getPlantById(id); }
+
+    // Wrapper for the repository methods method
     public void insert(Plant plant) { mRepository.insert(plant); }
 
     public void update(Plant plant) { mRepository.update(plant); }
+
+    public void delete(Plant plant) { mRepository.delete(plant); }
 }

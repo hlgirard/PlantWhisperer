@@ -40,7 +40,7 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
 
     @Override
     public PlantViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = mInflater.inflate(R.layout.plant_list_item_view, parent, false);
+        View itemView = mInflater.inflate(R.layout.plant_list_item_view_card, parent, false);
         return new PlantViewHolder(itemView);
     }
 

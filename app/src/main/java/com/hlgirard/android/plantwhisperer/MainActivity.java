@@ -102,6 +102,12 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mAdapter.notifyDataSetChanged();
+    }
+
     private void updateAllPlants() {
         plantList = mPlantViewModel.getAllPlants();
 

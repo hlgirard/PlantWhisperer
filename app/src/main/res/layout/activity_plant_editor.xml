@@ -28,15 +28,24 @@
             <EditText
                 android:id="@+id/edit_plant_name"
                 android:hint="Plant Name"
-                android:inputType="textCapWords"
+                android:inputType="text"
                 style="@style/EditorFieldStyle" />
 
-            <!-- Breed field -->
+            <!-- Location field -->
+            <EditText
+                android:id="@+id/edit_location"
+                android:hint="Location"
+                android:inputType="text"
+                style="@style/EditorFieldStyle" />
+
+            <!-- Mqtt topic field -->
             <EditText
                 android:id="@+id/edit_mqtt_topic"
                 android:hint="MQTT Topic"
-                android:inputType="textCapWords"
+                android:inputType="text"
                 style="@style/EditorFieldStyle" />
+
+
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

@@ -14,17 +14,22 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 public class MqttHelper {
+
     public MqttAndroidClient mqttAndroidClient;
 
     final String serverUri = "tcp://test.mosquitto.org:1883";
 
     final String clientId = "PlantWhisperer";
-    final String subscriptionTopic = "archblob/moisture";
+//    final String subscriptionTopic = "archblob/moisture";
+    String subscriptionTopic;
 
 //    final String username = "xxxxxxx";
 //    final String password = "yyyyyyyyyy";
 
-    public MqttHelper(Context context){
+    public MqttHelper(Context context, String subscription_topic){
+
+        subscriptionTopic = subscription_topic;
+
         mqttAndroidClient = new MqttAndroidClient(context, serverUri, clientId);
         mqttAndroidClient.setCallback(new MqttCallbackExtended() {
             @Override

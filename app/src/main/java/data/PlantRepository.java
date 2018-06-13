@@ -10,7 +10,7 @@ import java.util.List;
 public class PlantRepository {
 
     private PlantDao mPlantDao;
-    private LiveData<List<Plant>> mAllPlants;
+    private List<Plant> mAllPlants;
 
     // Constructor for the repository
     // Gets a handle to the database and initializes the membre variables
@@ -20,7 +20,7 @@ public class PlantRepository {
         mAllPlants = mPlantDao.getAllPlants();
     }
 
-    LiveData<List<Plant>> getAllPlants() {
+    List<Plant> getAllPlants() {
         return mAllPlants;
     }
 
@@ -39,6 +39,21 @@ public class PlantRepository {
         @Override
         protected Void doInBackground(final Plant... params) {
             mAsyncTaskDao.insert(params[0]);
+            return null;
+        }
+    }
+
+    public void update (Plant plant) { new updateAsyncTask(mPlantDao).execute(plant); }
+
+    private static class updateAsyncTask extends AsyncTask<Plant, Void, Void> {
+
+        private PlantDao mAsyncTaskDao;
+
+        updateAsyncTask(PlantDao dao) { mAsyncTaskDao = dao; }
+
+        @Override
+        protected Void doInBackground(final Plant... params) {
+            mAsyncTaskDao.update(params[0]);
             return null;
         }
     }

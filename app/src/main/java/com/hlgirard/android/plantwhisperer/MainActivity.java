@@ -35,24 +35,13 @@ import helpers.MqttHelper;
 
 public class MainActivity extends AppCompatActivity {
 
-    private DateFormat timeFormat = new SimpleDateFormat("MM:dd:YYYY HH:mm");
     private static int PLANT_LOADER_ID = 1;
     private ProgressBar loading_spinner;
     private TextView empty_tv;
     private PlantListAdapter mAdapter;
     private MqttHelper mqttHelper;
-    private List<Plant> fakePlantList = new ArrayList<Plant>();;
+    private List<Plant> plantList;
     private PlantViewModel mPlantViewModel;
-
-    Date fakeDate;
-
-    {
-        try {
-            fakeDate = timeFormat.parse("5:18:2018 14:23");
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,11 +65,6 @@ public class MainActivity extends AppCompatActivity {
         plantRecyclerView.setAdapter(mAdapter);
         plantRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        //fakePlantList.add(new Plant("Yucca", 25,fakeDate));
-        //fakePlantList.add(new Plant("Banana tree", 90,fakeDate));
-
-        mAdapter.notifyDataSetChanged();
-
         // Setup FAB to open EditorActivity
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -92,16 +76,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Get a viewModel
+        // TODO: Move database access to background tasks (cannot access db on main thread)
         mPlantViewModel = ViewModelProviders.of(this).get(PlantViewModel.class);
+        List<Plant> plantList = mPlantViewModel.getAllPlants();
+        mAdapter.setPlants(plantList);
+        mAdapter.notifyDataSetChanged();
 
-        // Set an observer for the allPlants date
-        mPlantViewModel.getAllPlants().observe(this, new Observer<List<Plant>>() {
-            @Override
-            public void onChanged(@Nullable final List<Plant> plants) {
-                // Update the cached copy of the words in the adapter.
-                mAdapter.setPlants(plants);
-            }
-        });
 
         //Check connectivity
         ConnectivityManager cm =
@@ -112,8 +92,8 @@ public class MainActivity extends AppCompatActivity {
                 activeNetwork.isConnectedOrConnecting();
 
         if (isConnected) {
-            // Start the Mqtt client
-            startMqtt();
+            // Update the plant data
+            updateAllPlants();
         } else {
             loading_spinner.setVisibility(View.GONE);
             empty_tv.setText("No internet connection");
@@ -122,8 +102,47 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void startMqtt() {
-        mqttHelper = new MqttHelper(getApplicationContext());
+    private void updateAllPlants() {
+        plantList = mPlantViewModel.getAllPlants();
+
+        String mqttTopic;
+
+        for (int i = 0; i < plantList.size(); i++) {
+            Plant currentPlant = plantList.get(i);
+            mqttTopic = currentPlant.getTopic();
+            startMqtt(mqttTopic, i);
+        }
+    }
+
+    private void updatePlantData(String mqttMessage, int plantIndex) {
+        Plant currentPlant = plantList.get(plantIndex);
+
+        if (mqttMessage != null && !mqttMessage.isEmpty()) {
+
+            // MQTT message is of form "58.00", must be converted to double and then integer before storing in database
+            double mqttMessage_dbl = 0;
+            {
+                try {
+                    mqttMessage_dbl = Double.parseDouble(mqttMessage);
+                } catch (Exception e) {
+                    Log.e("String2Int", "Bad conversion to integer", e);
+                }
+            }
+            int newMoistureInt = (int) Math.floor(mqttMessage_dbl);
+
+            currentPlant.setHumidityLevel(newMoistureInt);
+            currentPlant.setDateUpdated(Calendar.getInstance().getTime().getTime());
+
+            mPlantViewModel.update(currentPlant);
+
+            Log.v("updatePlantData", "Updated the data for " + currentPlant.getName());
+
+            mAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void startMqtt(String topic, final int plantIndex) {
+        mqttHelper = new MqttHelper(getApplicationContext(), topic);
         mqttHelper.setCallback(new MqttCallbackExtended() {
             @Override
             public void connectComplete(boolean b, String s) {
@@ -137,8 +156,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
-                Log.w("Debug", mqttMessage.toString());
-                updateUI(mqttMessage.toString(),0);
+                Log.w("Debug", "Received MQTT message: " + mqttMessage.toString());
+                loading_spinner.setVisibility(View.GONE);
+                updatePlantData(mqttMessage.toString(), plantIndex);
             }
 
             @Override
@@ -170,12 +190,8 @@ public class MainActivity extends AppCompatActivity {
             // Floor the double and cast to integer to be used as the moisture level value
             int mqttMessage_int = (int) Math.floor(mqttMessage_dbl);
 
-            // Get the appropriate plant from the list
-            Plant currentPlant = fakePlantList.get(plantPosition);
-
-            // Update the Soil Moisture level and the Last update value
-            currentPlant.setHumidityLevel(mqttMessage_int);
-            currentPlant.setDateUpdated(Calendar.getInstance().getTime().getTime());
+            // TESTING: Add a new plant with the appropriate moisture level
+            // Plant newPlant = new Plant("Test Yucca", Calendar.getInstance().getTime().getTime(), mqttMessage_int, "archblob/moisture", "Living Room", 0);
 
             mAdapter.notifyDataSetChanged();
         }

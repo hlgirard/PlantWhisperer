@@ -13,7 +13,7 @@ import java.util.List;
 @Dao
 public interface PlantDao {
     @Query("SELECT * FROM plant_table ORDER BY id ASC")
-    LiveData<List<Plant>> getAllPlants();
+    List<Plant> getAllPlants();
 
     @Query("SELECT * FROM plant_table WHERE id IN (:plantIds)")
     List<Plant> loadAllByIds(int[] plantIds);

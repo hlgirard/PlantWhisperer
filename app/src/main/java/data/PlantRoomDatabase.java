@@ -9,7 +9,7 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-@Database(entities = {Plant.class}, version = 1)
+@Database(entities = {Plant.class}, version = 2)
 public abstract class PlantRoomDatabase extends RoomDatabase {
 
     public abstract PlantDao plantDao();
@@ -22,7 +22,9 @@ public abstract class PlantRoomDatabase extends RoomDatabase {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                             PlantRoomDatabase.class, "plant_database")
+                            .fallbackToDestructiveMigration()
                             .addCallback(sRoomDatabaseCallback)
+                            .allowMainThreadQueries()
                             .build();
                 }
             }
@@ -51,14 +53,14 @@ public abstract class PlantRoomDatabase extends RoomDatabase {
         @Override
         protected Void doInBackground(final Void... params) {
             // TODO: remove the deleteAll code
-            mDao.deleteAll();
-            Plant plant = new Plant("Yucca", 109293305, 10,"archblob/moisture");
-            mDao.insert(plant);
-            plant = new Plant("Banana Tree", 893248829, 93,"archblob/moisture");
-            mDao.insert(plant);
-            plant = new Plant("Tulips", 293048239, 27,"archblob/moisture");
-            mDao.insert(plant);
-            Log.v("PlantRoomDatabase", "Added dummy plants to the database");
+//            mDao.deleteAll();
+//            Plant plant = new Plant("Yucca", 109293305, 10,"archblob/moisture");
+//            mDao.insert(plant);
+//            plant = new Plant("Banana Tree", 893248829, 93,"archblob/moisture");
+//            mDao.insert(plant);
+//            plant = new Plant("Tulips", 293048239, 27,"archblob/moisture");
+//            mDao.insert(plant);
+//            Log.v("PlantRoomDatabase", "Added dummy plants to the database");
             return null;
         }
     }

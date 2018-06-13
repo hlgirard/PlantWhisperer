@@ -29,6 +29,7 @@ public class PlantEditorActivity extends AppCompatActivity {
 
     private EditText mNameEditText;
     private EditText mMqttEditText;
+    private EditText mLocationEditText;
     private PlantViewModel mPlantViewModel;
 
     @Override
@@ -39,6 +40,7 @@ public class PlantEditorActivity extends AppCompatActivity {
         // Find all relevant views that we will need to read user input from
         mNameEditText = (EditText) findViewById(R.id.edit_plant_name);
         mMqttEditText = (EditText) findViewById(R.id.edit_mqtt_topic);
+        mLocationEditText = (EditText) findViewById(R.id.edit_location);
 
         // Set onTouchListener to know whether the user has interacted with the views
         mNameEditText.setOnTouchListener(mTouchListener);
@@ -59,7 +61,8 @@ public class PlantEditorActivity extends AppCompatActivity {
     private void savePlant() {
         String name = mNameEditText.getText().toString().trim();
         String mqttTopic = mMqttEditText.getText().toString().trim();
-        Plant newPlant = new Plant(name,00000000, 0, mqttTopic);
+        String location = mLocationEditText.getText().toString().trim();
+        Plant newPlant = new Plant(name,00000000, 0, mqttTopic, location, 0);
         Log.v("PlantEditorActivity", "Inserting a new plant" + newPlant.toString());
         mPlantViewModel.insert(newPlant);
     }

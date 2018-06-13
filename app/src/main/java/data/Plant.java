@@ -28,12 +28,20 @@ public class Plant {
     @NonNull
     private String mTopic;
 
+    @ColumnInfo(name = "location")
+    private String mLocation;
+
+    @ColumnInfo(name = "mqtt_error")
+    private int mMqttError;
+
     // Constructor
-    public Plant(@NonNull String name, long dateUpdated, int humidityLevel, String topic) {
+    public Plant(@NonNull String name, long dateUpdated, int humidityLevel, String topic, String location, int mqttError) {
         mName = name;
         mDateUpdated = dateUpdated;
         mHumidityLevel = humidityLevel;
         mTopic = topic;
+        mLocation = location;
+        mMqttError = mqttError;
     }
 
     // Setters
@@ -42,6 +50,8 @@ public class Plant {
     public void setHumidityLevel(int humidity){mHumidityLevel = humidity;}
     public void setTopic(String topic){mTopic = topic;}
     public void setDateUpdated(long dateMilli){mDateUpdated = dateMilli;}
+    public void setLocation(String location){mLocation = location;}
+    public void setMqttError(int mqttError){mMqttError = mqttError;}
 
     // Getters
     public int getId() {return id;}
@@ -49,5 +59,7 @@ public class Plant {
     public int getHumidityLevel(){return mHumidityLevel;}
     public String getTopic(){return mTopic;}
     public long getDateUpdated(){return mDateUpdated;}
+    public String getLocation(){return mLocation;}
+    public int getMqttError(){return mMqttError;}
 
 }

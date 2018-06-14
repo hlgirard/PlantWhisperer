@@ -11,7 +11,6 @@ public class PlantRepository {
 
     private PlantDao mPlantDao;
     private LiveData<List<Plant>> mAllPlants;
-    private List<Plant> mPlantList;
 
     // Constructor for the repository
     // Gets a handle to the database and initializes the member variables
@@ -19,18 +18,17 @@ public class PlantRepository {
         PlantRoomDatabase db = PlantRoomDatabase.getDatabase(application);
         mPlantDao = db.plantDao();
         mAllPlants = mPlantDao.getAllPlants();
-        mPlantList = mPlantDao.getPlantList();
     }
 
-    List<Plant> getPlantList() { return mPlantList; }
 
-    LiveData<List<Plant>> getAllPlants() {
+
+    public LiveData<List<Plant>> getAllPlants() {
         return mAllPlants;
     }
 
-    public Plant getPlantById(int id) {
-        return mPlantDao.loadPlantById(id);
-    }
+    public Plant getPlantById(int id) { return mPlantDao.loadPlantById(id); }
+
+    public List<Plant> getPlantList() { return mPlantDao.getPlantList(); }
 
     public void insert (Plant plant) {
         new insertAsyncTask(mPlantDao).execute(plant);

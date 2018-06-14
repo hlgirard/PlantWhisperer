@@ -19,9 +19,8 @@ public class MqttHelper {
 
     final String serverUri = "tcp://test.mosquitto.org:1883";
 
-    final String clientId = "PlantWhisperer";
-//    final String subscriptionTopic = "archblob/moisture";
-    String subscriptionTopic;
+    final String clientId = "PlantWhispererTesting";
+    final String subscriptionTopic;
 
 //    final String username = "xxxxxxx";
 //    final String password = "yyyyyyyyyy";
@@ -29,6 +28,7 @@ public class MqttHelper {
     public MqttHelper(Context context, String subscription_topic){
 
         subscriptionTopic = subscription_topic;
+        Log.v("MqttHelper","Subscription Topic set to " + subscriptionTopic);
 
         mqttAndroidClient = new MqttAndroidClient(context, serverUri, clientId);
         mqttAndroidClient.setCallback(new MqttCallbackExtended() {
@@ -55,6 +55,14 @@ public class MqttHelper {
         connect();
     }
 
+    public void disconnect() {
+        try {
+            mqttAndroidClient.disconnect();
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void setCallback(MqttCallbackExtended callback) {
         mqttAndroidClient.setCallback(callback);
     }
@@ -70,6 +78,7 @@ public class MqttHelper {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
 
+                    Log.v("mqttAndroidClient","Successfully connected to MQTT server");
                     DisconnectedBufferOptions disconnectedBufferOptions = new DisconnectedBufferOptions();
                     disconnectedBufferOptions.setBufferEnabled(true);
                     disconnectedBufferOptions.setBufferSize(100);
@@ -81,7 +90,7 @@ public class MqttHelper {
 
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    Log.w("Mqtt", "Failed to connect to: " + serverUri + exception.toString());
+                    Log.w("mqttAndroidClient", "Failed to connect to: " + serverUri + exception.toString());
                 }
             });
 

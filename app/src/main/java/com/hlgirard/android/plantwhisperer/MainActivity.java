@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -76,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         // Get a viewModel
         mPlantViewModel = ViewModelProviders.of(this).get(PlantViewModel.class);
 
@@ -96,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
         boolean isConnected = activeNetwork != null &&
                 activeNetwork.isConnectedOrConnecting();
 
+        // TODO: Move the data refresh to the Repository, the activity should only handle UI code
         if (isConnected) {
             // Update the plant data
             Log.v("Main Activity", "Triggering the data update");
@@ -112,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mAdapter.notifyDataSetChanged();
+        updateAllPlants();
     }
 
     private void updateAllPlants() {
@@ -120,6 +123,12 @@ public class MainActivity extends AppCompatActivity {
 
         String mqttTopic;
         Plant currentPlant;
+
+        if (plantList.size() == 0) {
+            loading_spinner.setVisibility(View.GONE);
+            Snackbar mySnackbar = Snackbar.make(findViewById(R.id.parent_view), "Add a plant to get started", Snackbar.LENGTH_LONG);
+            mySnackbar.show();
+        }
 
         for (int i = 0; i < plantList.size(); i++) {
             currentPlant = plantList.get(i);
@@ -133,9 +142,9 @@ public class MainActivity extends AppCompatActivity {
 
         Log.v("updatePlantData", "Got MQTT data, starting database update with plantIndex " + plantIndex);
 
-        Plant currentPlant = plantList.get(plantIndex);
+        Plant currentPlant = mPlantViewModel.getPlantById(plantIndex);
 
-        Log.v("updatePlantData", ", updating the database for plant #" + currentPlant.getId());
+        Log.v("updatePlantData", "Updating the database for plant #" + currentPlant.getId());
 
         if (mqttMessage != null && !mqttMessage.isEmpty()) {
 
@@ -157,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
 
             Log.v("updatePlantData", "Updated the data for plant #" + currentPlant.getId());
 
-            mAdapter.notifyDataSetChanged();
+            //mAdapter.notifyDataSetChanged();
         }
     }
 
@@ -188,35 +197,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-    }
-
-    private void updateUI(String mqttMessage, int plantPosition) {
-
-        loading_spinner.setVisibility(View.GONE);
-
-        // If there is a valid list of {@link Earthquake}s, then add them to the adapter's
-        // data set. This will trigger the ListView to update.
-        if (mqttMessage != null && !mqttMessage.isEmpty()) {
-
-            // Convert the string mqtt_message (e.g. "58.00") to double
-            double mqttMessage_dbl = 0;
-            {
-                try {
-                    mqttMessage_dbl = Double.parseDouble(mqttMessage);
-                }
-                catch (Exception e) {
-                    Log.e("String2Int","Bad conversion to integer",e);
-                }
-            }
-
-            // Floor the double and cast to integer to be used as the moisture level value
-            int mqttMessage_int = (int) Math.floor(mqttMessage_dbl);
-
-            // TESTING: Add a new plant with the appropriate moisture level
-            // Plant newPlant = new Plant("Test Yucca", Calendar.getInstance().getTime().getTime(), mqttMessage_int, "archblob/moisture", "Living Room", 0);
-
-            mAdapter.notifyDataSetChanged();
-        }
     }
 
 }

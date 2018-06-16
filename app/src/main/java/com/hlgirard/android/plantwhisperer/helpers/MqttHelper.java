@@ -1,4 +1,4 @@
-package helpers;
+package com.hlgirard.android.plantwhisperer.helpers;
 
 import android.content.Context;
 import android.util.Log;
@@ -13,6 +13,9 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import java.util.Enumeration;
+import java.util.Hashtable;
+
 public class MqttHelper {
 
     public MqttAndroidClient mqttAndroidClient;
@@ -20,15 +23,14 @@ public class MqttHelper {
     final String serverUri = "tcp://test.mosquitto.org:1883";
 
     final String clientId = "PlantWhispererTesting";
-    final String subscriptionTopic;
+    final Hashtable<String, Integer> subscriptionTopicList;
 
 //    final String username = "xxxxxxx";
 //    final String password = "yyyyyyyyyy";
 
-    public MqttHelper(Context context, String subscription_topic){
+    public MqttHelper(Context context, Hashtable<String, Integer> topicList){
 
-        subscriptionTopic = subscription_topic;
-        Log.v("MqttHelper","Subscription Topic set to " + subscriptionTopic);
+        subscriptionTopicList = topicList;
 
         mqttAndroidClient = new MqttAndroidClient(context, serverUri, clientId);
         mqttAndroidClient.setCallback(new MqttCallbackExtended() {
@@ -52,22 +54,30 @@ public class MqttHelper {
 
             }
         });
-        connect();
     }
 
     public void disconnect() {
         try {
-            mqttAndroidClient.disconnect();
+            if (mqttAndroidClient != null) {
+                mqttAndroidClient.disconnect();
+                Log.v("mqttHelper", "Disconnected from server");
+            } else {
+                Log.v("mqttHelper","Tried to disconnect on a null mqttAndroidClient !");
+            }
         } catch (MqttException e) {
             e.printStackTrace();
         }
+    }
+
+    public void close() {
+        mqttAndroidClient.close();
     }
 
     public void setCallback(MqttCallbackExtended callback) {
         mqttAndroidClient.setCallback(callback);
     }
 
-    private void connect(){
+    public void connect(){
         MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
         mqttConnectOptions.setAutomaticReconnect(true);
         mqttConnectOptions.setCleanSession(false);
@@ -102,22 +112,27 @@ public class MqttHelper {
 
 
     private void subscribeToTopic() {
-        try {
-            mqttAndroidClient.subscribe(subscriptionTopic, 0, null, new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    Log.w("Mqtt","Subscribed!");
-                }
+        Enumeration<String> e = subscriptionTopicList.keys();
+        String topic;
+        while (e.hasMoreElements()) {
+            topic = e.nextElement();
+            try {
+                mqttAndroidClient.subscribe(topic, 0, null, new IMqttActionListener() {
+                    @Override
+                    public void onSuccess(IMqttToken asyncActionToken) {
+                        Log.w("Mqtt", "Subscribed to topic");
+                    }
 
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    Log.w("Mqtt", "Subscribed fail!");
-                }
-            });
+                    @Override
+                    public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                        Log.w("Mqtt", "Subscribed fail!");
+                    }
+                });
 
-        } catch (MqttException ex) {
-            System.err.println("Exception whilst subscribing");
-            ex.printStackTrace();
+            } catch (MqttException ex) {
+                System.err.println("Exception whilst subscribing");
+                ex.printStackTrace();
+            }
         }
     }
 }

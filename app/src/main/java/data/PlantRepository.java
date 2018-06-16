@@ -14,7 +14,7 @@ public class PlantRepository {
 
     // Constructor for the repository
     // Gets a handle to the database and initializes the member variables
-    PlantRepository(Application application) {
+    public PlantRepository(Application application) {
         PlantRoomDatabase db = PlantRoomDatabase.getDatabase(application);
         mPlantDao = db.plantDao();
         mAllPlants = mPlantDao.getAllPlants();

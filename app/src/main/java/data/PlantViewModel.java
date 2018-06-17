@@ -12,19 +12,17 @@ public class PlantViewModel extends AndroidViewModel {
 
     private PlantRepository mRepository;
     private LiveData<List<Plant>> mAllPlants;
-    private List<Plant> mPlantList;
 
     public PlantViewModel(@NonNull Application application) {
         super(application);
         mRepository = new PlantRepository(application);
         mAllPlants = mRepository.getAllPlants();
-        mPlantList = mRepository.getPlantList();
     }
 
     // Wrapper for the get methods
     public LiveData<List<Plant>> getAllPlants() { return mAllPlants; }
 
-    public List<Plant> getPlantList() { return mPlantList; }
+    public List<Plant> getPlantList() { return mRepository.getPlantList(); }
 
     public Plant getPlantById(int id) { return mRepository.getPlantById(id); }
 

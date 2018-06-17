@@ -12,15 +12,19 @@ import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.List;
 
+import data.MoistureHistory;
+import data.MoistureHistoryRepository;
 import data.Plant;
 import data.PlantRepository;
 
 public class mqttUpdaterAsyncTask extends AsyncTask<Context, Void, Void> {
 
     PlantRepository mPlantRepo;
+    MoistureHistoryRepository mHistoryRepo;
 
-    public mqttUpdaterAsyncTask(PlantRepository plantRepo) {
+    public mqttUpdaterAsyncTask(PlantRepository plantRepo, MoistureHistoryRepository historyRepo) {
         mPlantRepo = plantRepo;
+        mHistoryRepo = historyRepo;
     }
 
     @Override
@@ -121,6 +125,7 @@ public class mqttUpdaterAsyncTask extends AsyncTask<Context, Void, Void> {
                     Log.e("String2Int", "Bad conversion to integer", e);
                 }
             }
+
             int newMoistureInt = (int) Math.floor(mqttMessage_dbl);
 
             currentPlant.setHumidityLevel(newMoistureInt);
@@ -131,6 +136,12 @@ public class mqttUpdaterAsyncTask extends AsyncTask<Context, Void, Void> {
             Log.v("updatePlantData", "Updated the data for plant " +
                     currentPlant.getName() +
                     " #" + currentPlant.getId());
+
+            // Insert a new point in the history database if there isn't one from the past 30 mn
+            if (mHistoryRepo.getHistoryByIdLaterThan(plantIndex, System.currentTimeMillis() - (30 * 60 * 1000)).size() == 0) {
+                mHistoryRepo.insert(new MoistureHistory(plantIndex, newMoistureInt, System.currentTimeMillis()));
+                Log.v("updatePlantData", "Inserted a new point in the history database for plant #" + plantIndex);
+            }
 
         }
     }

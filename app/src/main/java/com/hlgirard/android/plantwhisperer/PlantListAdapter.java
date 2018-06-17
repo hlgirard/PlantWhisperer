@@ -6,12 +6,20 @@ import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.jjoe64.graphview.DefaultLabelFormatter;
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
+import com.jjoe64.graphview.series.PointsGraphSeries;
 
 import org.w3c.dom.Text;
 
@@ -20,6 +28,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import data.MoistureHistory;
+import data.MoistureHistoryRepository;
 import data.Plant;
 import data.PlantViewModel;
 
@@ -32,12 +42,11 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
         private final TextView last_update_tv;
         private final TextView location_tv;
         private final TextView mqtt_topic_tv;
+        private final GraphView history_graphView;
 
         private final Button edit_button;
 
         private final LinearLayout expanded_ll;
-
-        private PlantViewModel mPlantViewModel;
 
         private PlantViewHolder(View itemView) {
             super(itemView);
@@ -47,6 +56,8 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
             location_tv = itemView.findViewById(R.id.location_tv);
             mqtt_topic_tv = itemView.findViewById(R.id.mqtt_topic_tv);
 
+            history_graphView = itemView.findViewById(R.id.history_graph);
+
             edit_button = itemView.findViewById(R.id.edit_button);
 
             expanded_ll = itemView.findViewById(R.id.extended_card_linlayout);
@@ -55,8 +66,14 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
 
     private final LayoutInflater mInflater;
     private List<Plant> mPlants; // Cached copy of words
+    private MoistureHistoryRepository mHistoryRepo;
+    private Context mContext;
 
-    PlantListAdapter(Context context) { mInflater = LayoutInflater.from(context); }
+    PlantListAdapter(Context context, MoistureHistoryRepository HistoryRepo) {
+        mContext = context;
+        mInflater = LayoutInflater.from(context);
+        mHistoryRepo = HistoryRepo;
+    }
 
     int mExpandedPosition = -1;
     int previousExpandedPosition = -1;
@@ -115,14 +132,6 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
                 }
             });
 
-            // Attach onClickListener to delete button
-        /*holder.delete_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                deletePlant(currentPlant);
-            }
-        });*/
-
             // Attach onClickListener to the edit button
             holder.edit_button.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -133,8 +142,46 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
                 }
             });
 
+            // Populate the grapView
+            PointsGraphSeries<DataPoint> series = new PointsGraphSeries<DataPoint>(historyPoints(currentPlant.getId()));
+            holder.history_graphView.addSeries(series);
 
+            // custom label formatter to show the hours
+            holder.history_graphView.getGridLabelRenderer().setLabelFormatter(new DefaultLabelFormatter() {
+                @Override
+                public String formatLabel(double value, boolean isValueX) {
+                    if (isValueX) {
+                        // show hours before now for x values
+                        int diffHours = (int) Math.floor((value)/(1000 * 60 * 60));
+                        return "-" + Integer.toString(diffHours) + "h";
+                    } else {
+                        // show normal y values
+                        return super.formatLabel(value, isValueX);
+                    }
+                }
+            });
+
+            // set manual Y bounds
+            holder.history_graphView.getViewport().setYAxisBoundsManual(true);
+            holder.history_graphView.getViewport().setMinY(0);
+            holder.history_graphView.getViewport().setMaxY(100);
+            holder.history_graphView.getViewport().setXAxisBoundsManual(true);
+            holder.history_graphView.getViewport().setMaxX(0);
         }
+    }
+
+    DataPoint[] historyPoints(int plantId) {
+
+        List<MoistureHistory> plantHistory = mHistoryRepo.getHistoryByPlantId(plantId);
+
+        DataPoint[] series = new DataPoint[plantHistory.size()];
+
+        for (int i = 0; i < plantHistory.size(); i++) {
+            series[i] = new DataPoint((plantHistory.get(i).getDateTime() - System.currentTimeMillis()), plantHistory.get(i).getSoilMoisture());
+        }
+
+
+        return series;
     }
 
     void setPlants(List<Plant> plants){

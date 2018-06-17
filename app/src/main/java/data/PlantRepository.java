@@ -20,8 +20,6 @@ public class PlantRepository {
         mAllPlants = mPlantDao.getAllPlants();
     }
 
-
-
     public LiveData<List<Plant>> getAllPlants() {
         return mAllPlants;
     }

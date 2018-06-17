@@ -32,7 +32,7 @@
                 android:id="@+id/edit_plant_name"
                 style="@style/EditorFieldStyle"
                 android:hint="Plant Name"
-                android:inputType="text" />
+                android:inputType="textCapSentences" />
 
         </LinearLayout>
 
@@ -53,7 +53,7 @@
             android:id="@+id/edit_location"
             style="@style/EditorFieldStyle"
             android:hint="Location"
-            android:inputType="text" />
+            android:inputType="textCapSentences" />
 
         </LinearLayout>
 

@@ -51,4 +51,7 @@ dependencies {
 
     // Cardview dependency
     implementation 'com.android.support:cardview-v7:27.1.1'
+
+    // Graphview components
+    implementation 'com.jjoe64:graphview:4.2.2'
 }

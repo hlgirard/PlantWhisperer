@@ -28,6 +28,8 @@ public class MoistureHistoryViewModel extends AndroidViewModel {
 
     public List<MoistureHistory> getHistoryByIdLaterThan(int plantId, long time) { return mRepository.getHistoryByIdLaterThan(plantId, time); }
 
+    public MoistureHistory getLatestMoistureById(int plantId) { return mRepository.getLatestMoistureById(plantId); }
+
     public void deleteAllOlderThan(long time) { mRepository.deleteAllOlderThan(time);}
 
     public void insert(MoistureHistory data) { mRepository.insert(data); }

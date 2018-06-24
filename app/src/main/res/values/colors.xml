@@ -10,4 +10,6 @@
     <color name="between30and50">#FFEB3B</color>
     <color name="below30">#FF9800</color>
 
+    <color name="errorRed">#FF2B2B</color>
+
 </resources>

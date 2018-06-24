@@ -18,11 +18,14 @@ public interface MoistureHistoryDao {
     @Query("SELECT * FROM moisture_history ORDER BY id ASC")
     List<MoistureHistory> getAllHistoryList();
 
-    @Query("SELECT * FROM moisture_history WHERE mPlantId = (:plantID)")
+    @Query("SELECT * FROM moisture_history WHERE mPlantId = (:plantID) ORDER BY mDateTime ASC")
     List<MoistureHistory> getHistoryByPlantId(int plantID);
 
     @Query("SELECT * FROM moisture_history WHERE mPlantId = (:plantID) AND mDateTime > (:time)")
     List<MoistureHistory> getHistoryByIdLaterThan(int plantID, long time);
+
+    @Query("SELECT * FROM moisture_history WHERE mPlantId = (:plantID) AND mDateTime = (SELECT MAX(mDateTime) FROM moisture_history WHERE mPlantId = (:plantID))")
+    MoistureHistory getLatestMoistureValueById(int plantID);
 
     @Query("DELETE FROM moisture_history WHERE mDateTime < (:timeLimit)")
     void deleteAllOlderThan(long timeLimit);

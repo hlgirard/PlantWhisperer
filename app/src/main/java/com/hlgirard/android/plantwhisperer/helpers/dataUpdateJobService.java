@@ -8,7 +8,7 @@ import data.PlantRepository;
 
 public class dataUpdateJobService extends JobService {
 
-    mqttUpdaterAsyncTask mUpdaterAsyncTask;
+    PlantHistoryUpdater mUpdaterAsyncTask;
 
     @Override
     public boolean onStartJob(final JobParameters params) {
@@ -16,7 +16,7 @@ public class dataUpdateJobService extends JobService {
         PlantRepository mPlantRepo = new PlantRepository(getApplication());
         MoistureHistoryRepository mHistoryRepo = new MoistureHistoryRepository(getApplication());
 
-        mUpdaterAsyncTask = new mqttUpdaterAsyncTask(mPlantRepo, mHistoryRepo) {
+        mUpdaterAsyncTask = new PlantHistoryUpdater(mPlantRepo, mHistoryRepo) {
 
             // Make sure the onPostExecute calls jobFinished
             @Override

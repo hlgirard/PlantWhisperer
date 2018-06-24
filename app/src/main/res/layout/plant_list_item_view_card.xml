@@ -50,6 +50,15 @@
                     android:textSize="14sp"
                     tools:text="Last updated: 15 minutes ago" />
 
+                <TextView
+                    android:id="@+id/error"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:visibility="gone"
+                    android:text="Error fetching updated data" />
+
             </LinearLayout>
 
             <!-- Moisture level view -->
@@ -99,7 +108,7 @@
 
             </LinearLayout>
 
-            <!-- MQTT Topic view -->
+            <!-- Bucket Name view -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -108,7 +117,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="MQTT Topic: "
+                    android:text="Bucket ID: "
 
                     android:textSize="16sp" />
 
@@ -117,7 +126,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@android:color/black"
-                    tools:text="archblob/moisture" />
+                    tools:text="soil_moisture_yucca" />
 
             </LinearLayout>
 

@@ -25,6 +25,8 @@ public class MoistureHistoryRepository {
 
     public List<MoistureHistory> getHistoryByIdLaterThan(int plantId, long time) { return mHistoryDao.getHistoryByIdLaterThan(plantId, time); }
 
+    public MoistureHistory getLatestMoistureById(int plantId) { return mHistoryDao.getLatestMoistureValueById(plantId); }
+
     public void deleteAllOlderThan(long time) { mHistoryDao.deleteAllOlderThan(time); }
 
     public void insert (MoistureHistory data) {

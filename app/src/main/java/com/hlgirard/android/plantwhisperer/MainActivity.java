@@ -28,9 +28,9 @@ import data.Plant;
 import data.PlantRepository;
 import data.PlantViewModel;
 
+import com.hlgirard.android.plantwhisperer.helpers.PlantHistoryUpdater;
 import com.hlgirard.android.plantwhisperer.helpers.dataUpdateJobService;
 import com.hlgirard.android.plantwhisperer.helpers.historyCleanupJobService;
-import com.hlgirard.android.plantwhisperer.helpers.mqttUpdaterAsyncTask;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -87,22 +87,21 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Setup the data update Jobscheduler
-        // TODO: Find a way to handle MQTT requests in the background, currently, start of mqttservice is rejected by O restrictions
-        /*JobScheduler jobScheduler =
+        JobScheduler updateJobScheduler =
                 (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
 
-        jobScheduler.schedule(new JobInfo.Builder(PLANT_LOADER_JOB_ID, new ComponentName(this, dataUpdateJobService.class))
+        updateJobScheduler.schedule(new JobInfo.Builder(PLANT_LOADER_JOB_ID, new ComponentName(this, dataUpdateJobService.class))
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-                .setPeriodic(60 * 60 * 1000)
+                .setPeriodic(6 * 60 * 60 * 1000) // milliseconds, run once per 6 hours
                 .setPersisted(true)
-                .build());*/
+                .build());
 
         // Setup the data cleanup JobScheduler
-        JobScheduler jobScheduler =
+        JobScheduler cleanJobScheduler =
                 (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
 
-        jobScheduler.schedule(new JobInfo.Builder(PLANT_LOADER_JOB_ID, new ComponentName(this, historyCleanupJobService.class))
-                .setPeriodic(24 * 60 * 60 * 1000) // run once per day
+        cleanJobScheduler.schedule(new JobInfo.Builder(PLANT_LOADER_JOB_ID, new ComponentName(this, historyCleanupJobService.class))
+                .setPeriodic(24 * 60 * 60 * 1000) // milliseconds, run once per day
                 .setPersisted(true)
                 .build());
     }
@@ -132,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateData(PlantRepository plantRepo, MoistureHistoryRepository historyRepo) {
-        mqttUpdaterAsyncTask updaterAsyncTask = new mqttUpdaterAsyncTask(plantRepo, historyRepo);
+        PlantHistoryUpdater updaterAsyncTask = new PlantHistoryUpdater(plantRepo, historyRepo);
         updaterAsyncTask.execute(getApplicationContext());
     }
 

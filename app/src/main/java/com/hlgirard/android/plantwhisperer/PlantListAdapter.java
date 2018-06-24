@@ -42,6 +42,7 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
         private final TextView last_update_tv;
         private final TextView location_tv;
         private final TextView mqtt_topic_tv;
+        private final TextView error_tv;
         private final GraphView history_graphView;
 
         private final Button edit_button;
@@ -55,6 +56,7 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
             last_update_tv = itemView.findViewById(R.id.last_update);
             location_tv = itemView.findViewById(R.id.location_tv);
             mqtt_topic_tv = itemView.findViewById(R.id.mqtt_topic_tv);
+            error_tv = itemView.findViewById(R.id.error);
 
             history_graphView = itemView.findViewById(R.id.history_graph);
 
@@ -94,20 +96,52 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
             // Set the name
             holder.name_tv.setText(currentPlant.getName());
 
-            // Set the moisture level
-            String moistureText = Integer.toString(currentPlant.getHumidityLevel()) + "%";
-            holder.soilMoist_tv.setText(moistureText);
-
-            // Set the moisture circle color
-            GradientDrawable moistureCircle = (GradientDrawable) holder.soilMoist_tv.getBackground();
-            int moistureColor = getMoistureCircleColor(currentPlant.getHumidityLevel(), holder.soilMoist_tv.getContext());
-            moistureCircle.setColor(moistureColor);
-
             // Set last updated time
             DateFormat timeFormat = new SimpleDateFormat("MMM dd, YYYY HH:mm a");
             Date date_updated = new Date(currentPlant.getDateUpdated());
             String lastUpdate_text = "Last updated: " + timeFormat.format(date_updated);
             holder.last_update_tv.setText(lastUpdate_text);
+
+            if (currentPlant.getMqttError() == 0) {
+
+                // Set the moisture level
+                String moistureText = Integer.toString(currentPlant.getHumidityLevel()) + "%";
+                holder.soilMoist_tv.setText(moistureText);
+
+                // Set the moisture circle color
+                GradientDrawable moistureCircle = (GradientDrawable) holder.soilMoist_tv.getBackground();
+                int moistureColor = getMoistureCircleColor(currentPlant.getHumidityLevel(), holder.soilMoist_tv.getContext());
+                moistureCircle.setColor(moistureColor);
+
+                // Set the error text visibility to GONE
+                holder.error_tv.setVisibility(View.GONE);
+
+                // Set the graphview visibility back to visible
+                holder.history_graphView.setVisibility(View.VISIBLE);
+
+            } else {
+
+                // Set the moisture level
+                String moistureText = "!";
+                holder.soilMoist_tv.setText(moistureText);
+
+                // Set the moisture circle color
+                GradientDrawable moistureCircle = (GradientDrawable) holder.soilMoist_tv.getBackground();
+                moistureCircle.setColor(ContextCompat.getColor(holder.soilMoist_tv.getContext(), R.color.errorRed));
+
+                // Set the error text to visible
+                holder.error_tv.setVisibility(View.VISIBLE);
+
+                // If there has never been an update, say there is no data available
+                if (currentPlant.getDateUpdated() == 0) {
+                    holder.last_update_tv.setText("No data available");
+                }
+
+                // If there has not been an update for 7 days, hide graph view
+                if (currentPlant.getDateUpdated() < System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000) {
+                    holder.history_graphView.setVisibility(View.GONE);
+                }
+            }
 
             // Set the Location information
             holder.location_tv.setText(currentPlant.getLocation());
@@ -143,17 +177,18 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
             });
 
             // Populate the grapView
+            holder.history_graphView.removeAllSeries();
             PointsGraphSeries<DataPoint> series = new PointsGraphSeries<DataPoint>(historyPoints(currentPlant.getId()));
             holder.history_graphView.addSeries(series);
 
-            // custom label formatter to show the hours
+            // Custom label formatter to show the hours
             holder.history_graphView.getGridLabelRenderer().setLabelFormatter(new DefaultLabelFormatter() {
                 @Override
                 public String formatLabel(double value, boolean isValueX) {
                     if (isValueX) {
                         // show hours before now for x values
-                        int diffHours = (int) Math.floor((value)/(1000 * 60 * 60));
-                        return "-" + Integer.toString(diffHours) + "h";
+                        int diffHours = (int) Math.floor((value));
+                        return Integer.toString(diffHours) + "h";
                     } else {
                         // show normal y values
                         return super.formatLabel(value, isValueX);
@@ -177,7 +212,7 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
         DataPoint[] series = new DataPoint[plantHistory.size()];
 
         for (int i = 0; i < plantHistory.size(); i++) {
-            series[i] = new DataPoint((plantHistory.get(i).getDateTime() - System.currentTimeMillis()), plantHistory.get(i).getSoilMoisture());
+            series[i] = new DataPoint((plantHistory.get(i).getDateTime() - System.currentTimeMillis())/(1000 * 60 * 60), plantHistory.get(i).getSoilMoisture());
         }
 
 

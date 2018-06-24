@@ -29,6 +29,8 @@ public class MoistureHistoryRepository {
 
     public void deleteAllOlderThan(long time) { mHistoryDao.deleteAllOlderThan(time); }
 
+    public void deleteHistoryByPlantId(int plantId) { mHistoryDao.deleteHistoryByPlantId(plantId); }
+
     public void insert (MoistureHistory data) {
         new insertAsyncTask(mHistoryDao).execute(data);
     }

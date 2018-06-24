@@ -1,5 +1,7 @@
 package com.hlgirard.android.plantwhisperer;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.arch.lifecycle.Observer;
@@ -9,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -35,6 +38,7 @@ import com.hlgirard.android.plantwhisperer.helpers.historyCleanupJobService;
 public class MainActivity extends AppCompatActivity {
 
     private static int PLANT_LOADER_JOB_ID = 1;
+    private static String NOTIFICATION_CHANNEL_ID = "low_moisture_alert";
     private ProgressBar loading_spinner;
     private TextView empty_tv;
     private PlantListAdapter mAdapter;
@@ -46,6 +50,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Register the low moisture notification channel with the system
+        createNotificationChannel();
 
         // Get a viewModel and repository
         mPlantViewModel = ViewModelProviders.of(this).get(PlantViewModel.class);
@@ -134,5 +141,22 @@ public class MainActivity extends AppCompatActivity {
         PlantHistoryUpdater updaterAsyncTask = new PlantHistoryUpdater(plantRepo, historyRepo);
         updaterAsyncTask.execute(getApplicationContext());
     }
+
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.channel_name);
+            String description = getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
 
 }

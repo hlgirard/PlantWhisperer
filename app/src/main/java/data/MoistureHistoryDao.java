@@ -30,6 +30,9 @@ public interface MoistureHistoryDao {
     @Query("DELETE FROM moisture_history WHERE mDateTime < (:timeLimit)")
     void deleteAllOlderThan(long timeLimit);
 
+    @Query("DELETE FROM moisture_history WHERE mPlantId = (:plantID)")
+    void deleteHistoryByPlantId(int plantID);
+
     @Query("DELETE FROM moisture_history")
     void deleteAll();
 

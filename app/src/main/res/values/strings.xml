@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Plant Whisperer</string>
+
+    <!-- Notification strings -->
+    <string name="channel_name">Low moisture alerts</string>
+    <string name="channel_description">Get notifications when the soil moisture level is low</string>
 </resources>

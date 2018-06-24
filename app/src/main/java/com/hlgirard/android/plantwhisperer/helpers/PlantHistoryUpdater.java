@@ -76,18 +76,22 @@ public class PlantHistoryUpdater extends AsyncTask<Context, Void, Void> {
 
                 Log.v("PlantUpdater", "Received " + String.valueOf(moistureHistoryData.size()) + " data points for plant #" + currentPlant.getId());
 
-                // Go through the received data and insert into the database (we have only requested new items so no need to check here)
-                for (int j = 0; j < moistureHistoryData.size(); j++) {
-                    mHistoryRepo.insert(moistureHistoryData.get(j));
+                if (moistureHistoryData.size() != 0) {
+
+                    // Go through the received data and insert into the database (we have only requested new items so no need to check here)
+                    for (int j = 0; j < moistureHistoryData.size(); j++) {
+                        mHistoryRepo.insert(moistureHistoryData.get(j));
+                    }
+
+                    // Obtain the newest latest data
+                    latestData = moistureHistoryData.get(0);
+
+                    // Set the current plant's properties
+                    currentPlant.setHumidityLevel(latestData.getSoilMoisture());
+                    currentPlant.setDateUpdated(latestData.getDateTime());
+                    currentPlant.setMqttError(0);
+
                 }
-
-                // Obtain the newest latest data
-                latestData = mHistoryRepo.getLatestMoistureById(currentPlant.getId());
-
-                // Set the current plant's properties
-                currentPlant.setHumidityLevel(latestData.getSoilMoisture());
-                currentPlant.setDateUpdated(latestData.getDateTime());
-                currentPlant.setMqttError(0);
 
             } catch (JSONException e) {
                 currentPlant.setMqttError(1);

@@ -19,7 +19,9 @@ import android.widget.EditText;
 
 import java.util.List;
 
+import data.MoistureHistoryRepository;
 import data.Plant;
+import data.PlantRepository;
 import data.PlantViewModel;
 
 public class PlantEditorActivity extends AppCompatActivity {
@@ -38,8 +40,10 @@ public class PlantEditorActivity extends AppCompatActivity {
     private EditText mLocationEditText;
 
     private Button mRemoveButton;
+    private Button mResetButton;
 
     private PlantViewModel mPlantViewModel;
+    private MoistureHistoryRepository mHistoryRepository;
 
     Bundle extras;
     private int plantId;
@@ -55,6 +59,7 @@ public class PlantEditorActivity extends AppCompatActivity {
         mLocationEditText = (EditText) findViewById(R.id.edit_location);
 
         mRemoveButton = (Button) findViewById(R.id.remove_button);
+        mResetButton = (Button) findViewById(R.id.reset_button);
 
         // Set onTouchListener to know whether the user has interacted with the views
         mNameEditText.setOnTouchListener(mTouchListener);
@@ -62,6 +67,9 @@ public class PlantEditorActivity extends AppCompatActivity {
 
         // Get the view model
         mPlantViewModel = ViewModelProviders.of(this).get(PlantViewModel.class);
+
+        // Get the history repo
+        mHistoryRepository = new MoistureHistoryRepository(getApplication());
 
         //Get the intent
         Intent intent = getIntent();
@@ -80,6 +88,14 @@ public class PlantEditorActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     showDeleteConfirmationDialog(plantId);
+                }
+            });
+
+            // Set the Reset button OnClickListener
+            mResetButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showResetConfirmationDialog(plantId);
                 }
             });
 
@@ -120,6 +136,12 @@ public class PlantEditorActivity extends AppCompatActivity {
         Plant toDelete = mPlantViewModel.getPlantById(id);
         Log.v("deletePlant", "Preparing to delete plant #" + toDelete.getId());
         mPlantViewModel.delete(toDelete);
+        finish();
+    }
+
+    private void resetPlantHistory(int id) {
+        Log.v("resetPlant", "Resetting history for plant with id #" + id);
+        mHistoryRepository.deleteHistoryByPlantId(id);
         finish();
     }
 
@@ -181,6 +203,32 @@ public class PlantEditorActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int id) {
                 // User clicked the "Delete" button, so delete the plant.
                 deletePlant(plantId);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked the "Cancel" button, so dismiss the dialog
+                // and continue editing the pet.
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+            }
+        });
+
+        // Create and show the AlertDialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    private void showResetConfirmationDialog(final int plantId) {
+        // Create an AlertDialog.Builder and set the message, and click listeners
+        // for the postivie and negative buttons on the dialog.
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Reset all history for this plant?");
+        builder.setPositiveButton("Reset", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked the "Reset" button, so reset the plant.
+                resetPlantHistory(plantId);
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

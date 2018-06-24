@@ -32,6 +32,8 @@ public class MoistureHistoryViewModel extends AndroidViewModel {
 
     public void deleteAllOlderThan(long time) { mRepository.deleteAllOlderThan(time);}
 
+    public void deleteHistoryById(int plantId) { mRepository.deleteHistoryByPlantId(plantId); }
+
     public void insert(MoistureHistory data) { mRepository.insert(data); }
 
     public void update(MoistureHistory data) { mRepository.update(data); }

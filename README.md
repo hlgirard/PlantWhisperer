@@ -1,6 +1,7 @@
 # PlantWhisperer
 
-Android app that displays the soil moisture level of your house / garden plants obtained from an MQTT server.
+This is an Android app that displays the soil moisture level of your house / garden plants.
+The app connects to a thinger.io server through a RESTful API and, for each registered plant, retrieves numeric data from a specific bucket.
 
 ## License
 

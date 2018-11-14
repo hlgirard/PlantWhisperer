@@ -3,7 +3,19 @@
 This is an Android app that displays the soil moisture level of your house / garden plants.
 The app connects to a thinger.io server through a RESTful API and, for each registered plant, retrieves numeric data from a specific bucket.
 
-![Screenshot](Screenshot_MainActivity.png)
+## Repository structure
+
+|__ root: root of the android app directory, can be cloned into Android Studio
+  |__ Arduino: contains the arduino code for the device part of the project
+  
+## Android app
+
+![Screenshot](docs/Screenshot_MainActivity.png)
+
+## Arduino-based device
+
+The device consists of an ESP8266 and a humidity sensor. The ESP8266 wakes up, polls the humidity sensor at regular intervals and uploads the data to a thinger.io bucket.
+
 
 ## License
 

@@ -63,6 +63,8 @@ public class dataUpdateJobService extends JobService {
         List<Plant> plantList = mPlantRepo.getPlantList();
 
         for (int i = 0; i < plantList.size(); i++) {
+
+            // TODO: check whether there is recent data before firing the notification !
             if (plantList.get(i).getHumidityLevel() < 15) {
                 createNotification(plantList.get(i).getId());
             }
@@ -92,7 +94,7 @@ public class dataUpdateJobService extends JobService {
                 .setAutoCancel(true);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        notificationManager.notify(1, mBuilder.build());
+        notificationManager.notify(plant.getId(), mBuilder.build());
 
 
     }

@@ -199,7 +199,7 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
             // set manual Y bounds
             holder.history_graphView.getViewport().setYAxisBoundsManual(true);
             holder.history_graphView.getViewport().setMinY(0);
-            holder.history_graphView.getViewport().setMaxY(100);
+            holder.history_graphView.getViewport().setMaxY(1000);
             holder.history_graphView.getViewport().setXAxisBoundsManual(true);
             holder.history_graphView.getViewport().setMaxX(0);
         }
@@ -224,8 +224,6 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
         notifyDataSetChanged();
     }
 
-    // getItemCount() is called many times, and when it is first called,
-    // mWords has not been updated (means initially, it's null, and we can't return null).
     @Override
     public int getItemCount() {
         if (mPlants != null)

@@ -15,14 +15,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import data.MoistureHistory;
 import data.MoistureHistoryRepository;
 import data.Plant;
+import data.PlantRepository;
 
 public class QueryUtils {
 
+    PlantRepository mPlantRepo;
     private MoistureHistoryRepository mHistoryRepo;
     private static final String LOG_TAG = "QueryUtils";
 
@@ -32,17 +35,26 @@ public class QueryUtils {
     private QueryUtils() {
     }
 
-    public static ArrayList<MoistureHistory> extractHistoryData(int plantId, String jsonResponse) throws JSONException {
+    public ArrayList<MoistureHistory> extractHistoryData(PlantRepository plantRepo, String jsonResponse) throws JSONException {
+
+        mPlantRepo = plantRepo;
 
         ArrayList<MoistureHistory> moistureHistoryList = new ArrayList<>();
 
-            JSONArray root = new JSONArray(jsonResponse);
+        JSONArray root = new JSONArray(jsonResponse);
 
-            for (int i=0; i < root.length(); i++) {
-                JSONObject element = root.getJSONObject(i);
-                long time = element.getLong("ts");
-                int moisture = element.getInt("val");
-                moistureHistoryList.add(new MoistureHistory(plantId, moisture, time));
+        for (int i=0; i < root.length(); i++) {
+            JSONObject element = root.getJSONObject(i);
+            long time = element.getLong("ts");
+            JSONObject subelement = element.getJSONObject("val");
+            Iterator<String> keys = subelement.keys();
+            while(keys.hasNext()) {
+                String key = keys.next();
+                // if key is in plantDB
+                    // plant ID = get plant ID
+                    // int moisture = subelement.getInt(key)
+                    // moistureHistoryList.add(new MoistureHistory(plantId, moisture, time));
+            }
 
             }
 
@@ -50,7 +62,7 @@ public class QueryUtils {
 
     }
 
-    public static ArrayList<MoistureHistory> fetchHistoryData(int plantId, String requestUrl) throws JSONException {
+    public ArrayList<MoistureHistory> fetchHistoryData(PlantRepository plantRepo, String requestUrl) throws JSONException {
 
         URL url = createUrl(requestUrl);
 
@@ -61,7 +73,7 @@ public class QueryUtils {
             Log.e(LOG_TAG, "Error closing input stream", e);
         }
 
-        return extractHistoryData(plantId, jsonResponse);
+        return extractHistoryData(plantRepo, jsonResponse);
 
     }
 

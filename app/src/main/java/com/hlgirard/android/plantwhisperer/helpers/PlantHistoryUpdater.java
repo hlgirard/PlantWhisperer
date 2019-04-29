@@ -20,7 +20,7 @@ public class PlantHistoryUpdater extends AsyncTask<Context, Void, Void> {
     PlantRepository mPlantRepo;
     MoistureHistoryRepository mHistoryRepo;
     String mBaseUrl = "https://api.thinger.io/v1/users/";
-    String mHardcodedUrl = "hlgirard/buckets/"; // TODO: remove hardcoded url piece and use user data
+    String mHardcodedUrl = "hlgirard/buckets/plant_data"; // TODO: remove hardcoded url piece and use user data
 
     public PlantHistoryUpdater(PlantRepository plantRepo, MoistureHistoryRepository historyRepo) {
         mPlantRepo = plantRepo;
@@ -53,6 +53,12 @@ public class PlantHistoryUpdater extends AsyncTask<Context, Void, Void> {
         // Obtain the plant list from the repository
         List<Plant> plantList = mPlantRepo.getPlantList();
 
+        // Get latest update time
+
+        latestUpdate = 0;
+
+        // currentPlant.getTopic() stores the columnID
+
         // Iterate over all the plants and update their history and current data
         for (int i = 0; i < plantList.size(); i++) {
 
@@ -64,11 +70,12 @@ public class PlantHistoryUpdater extends AsyncTask<Context, Void, Void> {
                 latestUpdate = 0;
             }
 
+
             // Build the request, up to 200 items starting from the latest update  in the database
             requestParams = "/data?items=200&min_ts=" + String.valueOf(latestUpdate + 1) + "&sort=desc";
 
             // Build the request URL and fetch the data from the server
-            String requestUrl = mBaseUrl + mHardcodedUrl + currentPlant.getTopic() + requestParams;
+            String requestUrl = mBaseUrl + mHardcodedUrl + requestParams;
 
             try {
 

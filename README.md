@@ -10,7 +10,7 @@ The app connects to a thinger.io server through a RESTful API and, for each regi
   
 ## Android app
 
-![Screenshot](docs/Screenshot_MainActivity.png)
+![Screenshot](docs/Screenshot_MainActivity.jpg)
 
 ## Arduino-based device
 

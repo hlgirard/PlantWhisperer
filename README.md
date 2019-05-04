@@ -5,9 +5,8 @@ The app connects to a thinger.io server through a RESTful API and, for each regi
 
 ## Repository structure
 
-|-- root: root of the android app directory, can be cloned into Android Studio
-
-|   |-- Arduino: contains the arduino code for the device part of the project
+- `root` root of the android app directory, can be cloned into Android Studio
+  - `Arduino` contains the arduino code for the device part of the project
   
 ## Android app
 

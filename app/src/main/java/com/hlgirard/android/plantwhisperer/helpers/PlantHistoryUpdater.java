@@ -57,8 +57,6 @@ public class PlantHistoryUpdater extends AsyncTask<Context, Void, Void> {
 
         latestUpdate = 0;
 
-        // currentPlant.getTopic() stores the columnID
-
         // Iterate over all the plants and update their history and current data
         for (int i = 0; i < plantList.size(); i++) {
 
@@ -70,45 +68,52 @@ public class PlantHistoryUpdater extends AsyncTask<Context, Void, Void> {
                 latestUpdate = 0;
             }
 
+        }
 
-            // Build the request, up to 200 items starting from the latest update  in the database
-            requestParams = "/data?items=200&min_ts=" + String.valueOf(latestUpdate + 1) + "&sort=desc";
 
-            // Build the request URL and fetch the data from the server
-            String requestUrl = mBaseUrl + mHardcodedUrl + requestParams;
+        // Build the request, up to 200 items starting from the latest update  in the database
+        requestParams = "/data?items=200&sort=desc";
 
-            try {
+        // Build the request URL and fetch the data from the server
+        String requestUrl = mBaseUrl + mHardcodedUrl + requestParams;
 
-                moistureHistoryData = QueryUtils.fetchHistoryData(plantList.get(i).getId(), requestUrl);
+        try {
+            QueryUtils query = new QueryUtils();
+            Log.v("PlantHistoryUpdater","Querying fetchHistoryData with url: " + requestUrl);
 
-                Log.v("PlantUpdater", "Received " + String.valueOf(moistureHistoryData.size()) + " data points for plant #" + currentPlant.getId());
+            moistureHistoryData = query.fetchHistoryData(mPlantRepo, requestUrl);
 
-                if (moistureHistoryData.size() != 0) {
+            Log.v("PlantHistoryUpdater", "Received " + String.valueOf(moistureHistoryData.size()) + " data points");
 
-                    // Go through the received data and insert into the database (we have only requested new items so no need to check here)
-                    for (int j = 0; j < moistureHistoryData.size(); j++) {
-                        mHistoryRepo.insert(moistureHistoryData.get(j));
-                    }
+            if (moistureHistoryData.size() != 0) {
 
-                    // Obtain the newest latest data
-                    latestData = moistureHistoryData.get(0);
+                // Go through the received data and insert into the database (we have only requested new items so no need to check here)
+                for (int j = 0; j < moistureHistoryData.size(); j++) {
+                    mHistoryRepo.insert(moistureHistoryData.get(j));
+                }
+
+                // Update the plants data
+                for (int i = 0; i < plantList.size(); i++) {
+                    currentPlant = plantList.get(i);
+
+                    // Get the latest data now that the history database has updated
+                    latestData = mHistoryRepo.getLatestMoistureById(currentPlant.getId());
 
                     // Set the current plant's properties
                     currentPlant.setHumidityLevel(latestData.getSoilMoisture());
                     currentPlant.setDateUpdated(latestData.getDateTime());
                     currentPlant.setMqttError(0);
 
+                    // Update the plant
+                    mPlantRepo.update(currentPlant);
                 }
 
-            } catch (JSONException e) {
-                currentPlant.setMqttError(1);
-            } finally {
-                // Update the current plant in the Plant database
-                mPlantRepo.update(currentPlant);
             }
 
-
+        } catch (JSONException e) {
+            Log.v("PlantUpdater", "Plant data update failed.");
         }
+
 
     }
 }

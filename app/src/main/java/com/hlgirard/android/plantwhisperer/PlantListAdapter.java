@@ -105,7 +105,7 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
             if (currentPlant.getMqttError() == 0) {
 
                 // Set the moisture level
-                String moistureText = Integer.toString(currentPlant.getHumidityLevel()) + "%";
+                String moistureText = Integer.toString(currentPlant.getHumidityLevel());// + "%"; TODO: Put percentage back if calibrated
                 holder.soilMoist_tv.setText(moistureText);
 
                 // Set the moisture circle color
@@ -179,6 +179,7 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
             // Populate the grapView
             holder.history_graphView.removeAllSeries();
             PointsGraphSeries<DataPoint> series = new PointsGraphSeries<DataPoint>(historyPoints(currentPlant.getId()));
+            series.setSize(5);
             holder.history_graphView.addSeries(series);
 
             // Custom label formatter to show the hours
@@ -187,8 +188,8 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
                 public String formatLabel(double value, boolean isValueX) {
                     if (isValueX) {
                         // show hours before now for x values
-                        int diffHours = (int) Math.floor((value));
-                        return Integer.toString(diffHours) + "h";
+                        int diffHours = (int) Math.floor(-1*(value)/24);
+                        return Integer.toString(diffHours) + " d";
                     } else {
                         // show normal y values
                         return super.formatLabel(value, isValueX);
@@ -197,9 +198,9 @@ public class PlantListAdapter extends RecyclerView.Adapter<PlantListAdapter.Plan
             });
 
             // set manual Y bounds
-            holder.history_graphView.getViewport().setYAxisBoundsManual(true);
-            holder.history_graphView.getViewport().setMinY(0);
-            holder.history_graphView.getViewport().setMaxY(1000);
+            //holder.history_graphView.getViewport().setYAxisBoundsManual(true);
+            //holder.history_graphView.getViewport().setMinY(250);
+            //holder.history_graphView.getViewport().setMaxY(500);
             holder.history_graphView.getViewport().setXAxisBoundsManual(true);
             holder.history_graphView.getViewport().setMaxX(0);
         }

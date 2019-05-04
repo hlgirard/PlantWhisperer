@@ -26,6 +26,8 @@ public class PlantViewModel extends AndroidViewModel {
 
     public Plant getPlantById(int id) { return mRepository.getPlantById(id); }
 
+    public Plant getPlantByTopic(String topic) { return mRepository.getPlantByTopic(topic); }
+
     // Wrapper for the repository methods method
     public void insert(Plant plant) { mRepository.insert(plant); }
 

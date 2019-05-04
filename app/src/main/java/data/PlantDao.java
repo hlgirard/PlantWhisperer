@@ -24,6 +24,9 @@ public interface PlantDao {
     @Query("SELECT * FROM plant_table WHERE id IN (:plantId)")
     Plant loadPlantById(int plantId);
 
+    @Query("SELECT * FROM plant_table WHERE topic IN (:topic)")
+    Plant loadPlantByTopic(String topic);
+
     @Query("DELETE FROM plant_table")
     void deleteAll();
 

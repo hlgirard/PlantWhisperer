@@ -22,6 +22,7 @@ import data.MoistureHistory;
 import data.MoistureHistoryRepository;
 import data.Plant;
 import data.PlantRepository;
+import data.Secret;
 
 public class QueryUtils {
 
@@ -30,9 +31,9 @@ public class QueryUtils {
     private static final String LOG_TAG = "QueryUtils";
 
     // TODO: implement OAuth to get the API token in real time
-    private static final String API_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJtb2lzdHVyZV9idWNrZXRfdG9rZW4iLCJ1c3IiOiJobGdpcmFyZCJ9.NmS6c0g5AiHswXwLYvhj3GT1INV6p0UMCfXRCKIxZVM";
+    private static final String API_key = Secret.API_key;
 
-    private QueryUtils() {
+    public QueryUtils() {
     }
 
     public ArrayList<MoistureHistory> extractHistoryData(PlantRepository plantRepo, String jsonResponse) throws JSONException {
@@ -50,10 +51,14 @@ public class QueryUtils {
             Iterator<String> keys = subelement.keys();
             while(keys.hasNext()) {
                 String key = keys.next();
-                // if key is in plantDB
-                    // plant ID = get plant ID
-                    // int moisture = subelement.getInt(key)
-                    // moistureHistoryList.add(new MoistureHistory(plantId, moisture, time));
+                // TODO: handle the case where there is no such plant
+                Plant currentPlant = mPlantRepo.getPlantByTopic(key);
+                if (currentPlant != null) {
+                    int moisture = subelement.getInt(key);
+                    moistureHistoryList.add(new MoistureHistory(currentPlant.getId(), moisture, time));
+                } else {
+                    Log.v("extractHistoryData", "No plant with topic: " + key);
+                }
             }
 
             }

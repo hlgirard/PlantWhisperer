@@ -70,9 +70,11 @@ public class PlantHistoryUpdater extends AsyncTask<Context, Void, Void> {
 
         }
 
+        Log.v("updateAllPlants", "Latest update was logged at: " + latestUpdate);
+
 
         // Build the request, up to 200 items starting from the latest update  in the database
-        requestParams = "/data?items=200&sort=desc";
+        requestParams = "/data?items=200&min_ts=" + String.valueOf(latestUpdate + 1) + "&sort=desc";
 
         // Build the request URL and fetch the data from the server
         String requestUrl = mBaseUrl + mHardcodedUrl + requestParams;

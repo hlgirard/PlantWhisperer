@@ -26,6 +26,8 @@ public class PlantRepository {
 
     public Plant getPlantById(int id) { return mPlantDao.loadPlantById(id); }
 
+    public Plant getPlantByTopic(String topic) { return mPlantDao.loadPlantByTopic(topic); }
+
     public List<Plant> getPlantList() { return mPlantDao.getPlantList(); }
 
     public void insert (Plant plant) {

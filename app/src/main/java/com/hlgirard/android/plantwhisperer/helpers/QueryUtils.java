@@ -15,34 +15,51 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import data.MoistureHistory;
 import data.MoistureHistoryRepository;
 import data.Plant;
+import data.PlantRepository;
+import data.Secret;
 
 public class QueryUtils {
 
+    PlantRepository mPlantRepo;
     private MoistureHistoryRepository mHistoryRepo;
     private static final String LOG_TAG = "QueryUtils";
 
     // TODO: implement OAuth to get the API token in real time
-    private static final String API_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJtb2lzdHVyZV9idWNrZXRfdG9rZW4iLCJ1c3IiOiJobGdpcmFyZCJ9.NmS6c0g5AiHswXwLYvhj3GT1INV6p0UMCfXRCKIxZVM";
+    private static final String API_key = Secret.API_key;
 
-    private QueryUtils() {
+    public QueryUtils() {
     }
 
-    public static ArrayList<MoistureHistory> extractHistoryData(int plantId, String jsonResponse) throws JSONException {
+    public ArrayList<MoistureHistory> extractHistoryData(PlantRepository plantRepo, String jsonResponse) throws JSONException {
+
+        mPlantRepo = plantRepo;
 
         ArrayList<MoistureHistory> moistureHistoryList = new ArrayList<>();
 
-            JSONArray root = new JSONArray(jsonResponse);
+        JSONArray root = new JSONArray(jsonResponse);
 
-            for (int i=0; i < root.length(); i++) {
-                JSONObject element = root.getJSONObject(i);
-                long time = element.getLong("ts");
-                int moisture = element.getInt("val");
-                moistureHistoryList.add(new MoistureHistory(plantId, moisture, time));
+        for (int i=0; i < root.length(); i++) {
+            JSONObject element = root.getJSONObject(i);
+            long time = element.getLong("ts");
+            JSONObject subelement = element.getJSONObject("val");
+            Iterator<String> keys = subelement.keys();
+            while(keys.hasNext()) {
+                String key = keys.next();
+                // TODO: handle the case where there is no such plant
+                Plant currentPlant = mPlantRepo.getPlantByTopic(key);
+                if (currentPlant != null) {
+                    int moisture = subelement.getInt(key);
+                    moistureHistoryList.add(new MoistureHistory(currentPlant.getId(), moisture, time));
+                } else {
+                    Log.v("extractHistoryData", "No plant with topic: " + key);
+                }
+            }
 
             }
 
@@ -50,7 +67,7 @@ public class QueryUtils {
 
     }
 
-    public static ArrayList<MoistureHistory> fetchHistoryData(int plantId, String requestUrl) throws JSONException {
+    public ArrayList<MoistureHistory> fetchHistoryData(PlantRepository plantRepo, String requestUrl) throws JSONException {
 
         URL url = createUrl(requestUrl);
 
@@ -61,7 +78,7 @@ public class QueryUtils {
             Log.e(LOG_TAG, "Error closing input stream", e);
         }
 
-        return extractHistoryData(plantId, jsonResponse);
+        return extractHistoryData(plantRepo, jsonResponse);
 
     }
 

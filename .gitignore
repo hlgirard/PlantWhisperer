@@ -8,4 +8,7 @@
 /build
 /captures
 .externalNativeBuild
+
+# Keep thinger credentials secret
+Secret.java
 credentials.h

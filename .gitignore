@@ -9,5 +9,6 @@
 /captures
 .externalNativeBuild
 
-# Keep API key private
+# Keep thinger credentials secret
 Secret.java
+credentials.h
